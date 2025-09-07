@@ -1,7 +1,9 @@
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 /**
  * Example 2D String visualization
  * @author ICS4UE
@@ -58,6 +60,19 @@ public class GameBoard extends JFrame{
     
     private ArrayList<int[]>availablepoints;
     
+    private int useTextInput=0;
+    private Scanner input;
+    private boolean animatingState=false;
+    private String[] movestring;
+    private int mspointer=0;
+    private boolean animationbuffer;
+    
+    private PythonAICommunicator ai;
+    private boolean processready=false;
+    public int[][] sendboard;
+    
+    //4 buttons
+    
     public void initialize () {
     	
     	this.frame=new JFrame();
@@ -74,9 +89,6 @@ public class GameBoard extends JFrame{
          //JLabel testlabel1= new JLabel("testing");
          //JLabel testlabel2= new JLabel("testing");
        
-       
-         
-    
         this.setVisible(true);
         
         
@@ -86,7 +98,7 @@ public class GameBoard extends JFrame{
         this.leftCol = CENTER_COL - cols/2;
         this.topRow  = CENTER_ROW - rows/2;
         
-        
+        sendboard=new int[14][14];
         board=new int[14][14];
         for(int x=0;x<14;x++){
           board[2][x]=2;
@@ -130,6 +142,35 @@ public class GameBoard extends JFrame{
         		htps.initialize();
         	}
         });
+        
+        
+        //replace this block with the intro stuff
+        
+        
+        //input=new Scanner(System.in);
+        //System.out.println("Enter text input options:");
+        //System.out.println("0. no text options");
+        //System.out.println("1. white plays with text");
+        //System.out.println("2. black plays with text");
+       // System.out.println("3. both play with text");
+        
+        //don't let the process continue further if nothing has been selected
+        //if not, then say that the engine couldn't be found, redirecting to player v player
+        //wait 1 second after saying that
+        
+       // useTextInput=input.nextInt();
+        //if (useTextInput>0) {
+        //	ai= new PythonAICommunicator();
+        //    try {
+                // IMPORTANT: Replace this with the actual path to your Python script
+        //        String pythonScriptPath = "";
+        //        ai.start(pythonScriptPath);
+        //        processready=true;
+        //    }catch (Exception e) {
+        //        System.out.println("could not find game engine");
+        //    }
+       // }
+        
         
     }
     public static boolean elementIn(ArrayList<int[]> points,int[] point){
@@ -198,6 +239,7 @@ public class GameBoard extends JFrame{
           }
       
         }
+        return 15;
       }
       else if(player==1){
         for(int x=0;x<14;x++){
@@ -208,6 +250,7 @@ public class GameBoard extends JFrame{
           }
       
         }
+        return -1;
       }
       return -1;
     }
@@ -230,6 +273,8 @@ public class GameBoard extends JFrame{
         public void paintComponent(Graphics g) {
           
             super.paintComponent(g);
+            
+            
             
             
             //draw the board pieces
@@ -335,12 +380,16 @@ public class GameBoard extends JFrame{
             selectY=pointY;
               if (board[pointX][pointY]==turn){
                 g.setColor(Color.GRAY);
-                
+                //going up/down
                 if(pointX>1){
                   //System.out.println("a");
                   if(board[pointX-1][pointY]!=0 && board[pointX-2][pointY]==0){
-                    
-                    g.fillOval((int)((pointY+0.25)*GRIDSIZE),(int)((pointX-1.75)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    if(turn==1) {
+                    	g.fillOval((int)((pointY+0.25)*GRIDSIZE),(int)((pointX-1.75)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                    else if(turn==2) {
+                    	g.fillOval((int)((13-pointY+0.25)*GRIDSIZE),(int)((13-pointX+2.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
                     selectspot=true;
                     int[] arr={pointX-2,pointY};
                     if(elementIn(availablepoints,arr)==false){
@@ -349,11 +398,16 @@ public class GameBoard extends JFrame{
                     }
                   }
                 }
+                //going up/down
                 if(pointX<12){
                   //System.out.println("b");
                   if(board[pointX+1][pointY]!=0 && board[pointX+2][pointY]==0){
-                    
-                    g.fillOval((int)((pointY+0.25)*GRIDSIZE),(int)((pointX+2.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    if(turn==1) {
+                    	g.fillOval((int)((pointY+0.25)*GRIDSIZE),(int)((pointX+2.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                    else if(turn==2) {
+                    	g.fillOval((int)((13-pointY+0.25)*GRIDSIZE),(int)((13-pointX-1.75)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
                     selectspot=true;
                     int[] arr={pointX+2,pointY};
                     if(elementIn(availablepoints,arr)==false){
@@ -362,11 +416,17 @@ public class GameBoard extends JFrame{
                     }
                   }
                 }
+                //going left/right
                 if(pointY>1){
                   //System.out.println("c");
                   if(board[pointX][pointY-1]!=0 && board[pointX][pointY-2]==0){
-                    g.fillOval((int)((pointY-1.75)*GRIDSIZE),(int)((pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
-                    selectspot=true;
+                    if(turn==1) {
+                	  g.fillOval((int)((pointY-1.75)*GRIDSIZE),(int)((pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                    else if(turn==2) {
+                    	g.fillOval((int)((13-pointY+2.25)*GRIDSIZE),(int)((13-pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                	selectspot=true;
                     int[] arr={pointX,pointY-2};
                     if(elementIn(availablepoints,arr)==false){
                       availablepoints.add(arr);
@@ -374,11 +434,17 @@ public class GameBoard extends JFrame{
                     }
                   }
                 }
+                //going left/right
                 if(pointY<12){
                   //System.out.println("d");
                   if(board[pointX][pointY+1]!=0 && board[pointX][pointY+2]==0){
-                    g.fillOval((int)((pointY+2.25)*GRIDSIZE),(int)((pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
-                    selectspot=true;
+                    if(turn==1) {
+                	  g.fillOval((int)((pointY+2.25)*GRIDSIZE),(int)((pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                    else if(turn==2) {
+                    	g.fillOval((int)((13-pointY-1.75)*GRIDSIZE),(int)((13-pointX+0.25)*GRIDSIZE), GRIDSIZE/2, GRIDSIZE/2);
+                    }
+                	selectspot=true;
                     int[] arr={pointX,pointY+2};
                     if(elementIn(availablepoints,arr)==false){
                       availablepoints.add(arr);
@@ -394,6 +460,7 @@ public class GameBoard extends JFrame{
                 
             }
           }
+          
           
           //drawing winner stuff
           
@@ -510,154 +577,372 @@ public class GameBoard extends JFrame{
             finalscores.setFont(new Font("among us", Font.PLAIN, MAX_X/100));
             finalscores.setBounds(MAX_X*13/25,MAX_Y*5/18,MAX_X/6,MAX_Y/18);
             
-          
-            this.repaint();
         }
+          
+          //end of drawing winner stuff
+          
+          
+          this.repaint();
+          
+          
+          //process game moves here
+          if((useTextInput/turn)%2==1 && animatingState==false && winner==false && processready==true) {
+        	  
+        	  mspointer=0;
+          	if(animationbuffer) {
+          		
+          		try {
+          			for (int i=0;i<14;i++) {
+          				sendboard[i]=board[13-i];
+          			}
+          			ai.shareBoard(sendboard, captures, promotes[0], promotes[1], move-2, turn,placepiece);
+          			this.repaint();
+          			
+          		}catch(Exception e) {System.out.println("could not share board");}
+          		animationbuffer=false;
+          		while (input.hasNextLine()==false) {
+              		//d1A,d2A,d3A,d4A,d5A,d6A,d7A,d8A,d9A,d:A,d;A,d<A,d=A,d>A
+              		//l1A,l2A,l3A,l4A,l5A,l6A,l7A,l8A,l9A,l:A,l;A,l<A,l=A,l>A
+              		
+              	}
+              	
+              	try {
+              		//System.out.println("possible move detected!");
+              		
+              		String moveSequence = ai.readMove();
+              		movestring=moveSequence.split(",");
+              		System.out.println(moveSequence);
+              		if(movestring.length>1) {
+              			//System.out.println("move received!");
+              			
+              			animatingState=true;
+              			
+              		}
+              	}catch(Exception e) {
+              		
+              	}
+          	}
+          	else {
+          		animationbuffer=true;
+          	}
+          	
+          	
+      		
+      		
+          	
+          	//
+          	//movestring=new String[] {"c4Z","c1A","c2P","c6M","c5Z","c6Z","c7Z","c8Z","c9Z","c:Z","c;Z","c<Z","c=Z","c>Z"};
+          	
+          }
+          
+          if(animatingState==true) {
+        	  try{Thread.sleep(200);}catch (Exception e) {}
+        	  //process the next move here
+        	  if (mspointer<movestring.length) {
+        		  processNextMove();
+        		  mspointer+=1;
+        	  }
+        	  else {
+        		  	
+		        	//let the next person go 1->2, 2->1
+		            turn=3-turn;
+		            //move is just to make it so nothing silly happens turns 1 and 2
+		            move+=1;
+		            //System.out.println("a");
+		            
+		            //placing the back row and promotes
+		            if(move>2){
+		              placepiece=3;
+		              int farthest=findFarthest(board,turn);
+		              
+		              
+		              if(turn==1 && farthest>10){
+		                winner=true;
+		                
+		              }
+		              else if(turn==2 && farthest<3){
+		                
+		                winner=true;
+		              }
+		              
+		              else{
+		                //System.out.println(placerow);
+		                if(turn==1){
+		                  placerow=farthest+2;
+		                
+		                  for(int x=placerow;x<14;x++){
+		                    for(int y=0;y<14;y++){
+		                      if(board[x][y]==2){
+		                        promotes[1]+=1;
+		                        board[x][y]=0;
+		                      }
+		                    }
+		                  }
+		                  if(promotes[0]>=3 ||promotes[1]>=3){
+		                    winner = true;
+		                  }
+		                  else{
+		                    for(int y=0;y<14;y++){
+		                      if(board[placerow][y]==1){
+		                        placepiece+=1;
+		                      }
+		                      board[placerow][y]=1;
+		                    }
+		                  }
+		          
+		                }
+		                else if(turn==2){
+		                  placerow=farthest-2;
+		                  for(int x=placerow;x>=0;x--){
+		                    for(int y=0;y<14;y++){
+		                      if(board[x][y]==1){
+		                        promotes[0]+=1;
+		                        board[x][y]=0;
+		                      }
+		                    }
+		                  }
+		                  if(promotes[0]>=3 ||promotes[1]>=3){
+		                    winner = true;
+		                  }
+		                  else{
+		                    for(int y=0;y<14;y++){
+		                      if(board[placerow][y]==2){
+		                        placepiece+=1;
+		                    
+		                      }
+		                      board[placerow][y]=2;
+		                    }
+		                  }
+		                }
+		                placing=true;
+		        
+		              }
+		            }
+		            animatingState=false;
+		            this.repaint();
+		            //try{Thread.sleep(10);}catch (Exception e) {}
+        	  }
+        	  
+        	  
+          }
+          
     }
     
         
-    
+    //this method is very fragile; if the AI generates illegal moves the entire simulation breaks
+    public void processNextMove() {
+    	//take the board and the next move, and do the thing
+    	
+    	String curmove=movestring[mspointer];
+    	//length of 1 means place piece phase
+    	int x;
+    	int y;
+    	char dir;
+    	if (curmove.length()==2) {
+    		x=13-(curmove.charAt(0)-97);
+    		y=curmove.charAt(1)-49;
+    		
+    		if (turn==1) {
+    			board[x][y]=turn;
+    		}
+    		else if(turn==2) {
+    			board[x][y]=turn;
+    		}
+    		placepiece-=1;
+    		//place starting piece there
+    	}
+    	else {
+    		x=13-(curmove.charAt(0)-97);
+    		y=curmove.charAt(1)-49;
+    		dir=curmove.charAt(2);
+    		if (dir=='A'){
+    			if(board[x+1][y]==3-turn) {
+    				captures+=3-turn*2;
+    			}
+    			board[x][y]=0;
+    			board[x+1][y]=0;
+    			board[x+2][y]=turn;
+    		}
+    		else if(dir=='Z') {
+    			if(board[x-1][y]==3-turn) {
+    				captures+=3-turn*2;
+    			}
+    			board[x][y]=0;
+    			board[x-1][y]=0;
+    			board[x-2][y]=turn;
+    		}
+    		else if(dir=='P') {
+    			if(board[x][y+1]==3-turn) {
+    				captures+=3-turn*2;
+    			}
+    			board[x][y]=0;
+    			board[x][y+1]=0;
+    			board[x][y+2]=turn;
+    		}
+			else if(dir=='M') {
+				if(board[x][y-1]==3-turn) {
+    				captures+=3-turn*2;
+    			}
+    			board[x][y]=0;
+    			board[x][y-1]=0;
+    			board[x][y-2]=turn;
+			}
+    		//capture the stuff
+    	}
+    	
+    	
+    }
+       
     
     }
     public class MyMouseListener implements MouseListener{
         public void mouseClicked(MouseEvent e){
-          if(placing==true){
-            //System.out.println("aa");
-            pointY=e.getX()/GRIDSIZE;
-            pointX=e.getY()/GRIDSIZE;//inverted for some reason
-            if (turn==2) {
-            	pointX=13-pointX;
-            	pointY=13-pointY;
-            }
-            
-            if(pointX<14 && pointY<14 && board[pointX][pointY]==0){
-              if(turn==1 && pointX==placerow+1){
-                board[pointX][pointY]=1;
-                placepiece-=1;
-                if(filledRow(board,placerow+1)==true){
-                    placepiece=0;
-                  }
-              }
-              else if(turn==2 && pointX==placerow-1){
-                board[pointX][pointY]=2;
-                placepiece-=1;
-                if(filledRow(board,placerow-1)==true){
-                    placepiece=0;
-                }
-              }
-            }
-            if(placepiece==0){
-              //System.out.println("aa");
-              placing=false;
-              //System.out.println(placing);
-            }
-            panel.repaint();
-          }
-          else{
-              // temp placeholder variables until we make actual buttons
-            
-            //System.out.println("aa");
-            if(pointY==e.getX()/GRIDSIZE && pointX==e.getY()/GRIDSIZE){
-              selectspot=false;
-            }
-            pointY=e.getX()/GRIDSIZE;
-            pointX=e.getY()/GRIDSIZE;//inverted for some reason
-            //point on graph
-            
-            if(selectspot==true){
-              int[] arr={pointX,pointY};
-              //System.out.print(arr[0]);
-              //System.out.print(" ");
-              //System.out.println(arr[1]);
-              //System.out.println(elementIn(availablepoints,arr));
-              if(elementIn(availablepoints,arr)==true){
-                board[pointX][pointY]=board[selectX][selectY];
-                board[selectX][selectY]=0;
-              if(board[(selectX+pointX)/2][(selectY+pointY)/2]==3-board[pointX][pointY]){
-                captures+=3-turn*2;
-              }
-              board[(selectX+pointX)/2][(selectY+pointY)/2]=0;
-              if(canMove(board,turn)==false){
-                turn=3-turn;
-                move+=1;
-                //System.out.println("a");
-                
-                //placing the back row and promotes
-                if(move>2){
-                  placepiece=3;
-                  int farthest=findFarthest(board,turn);
-                  
-                  
-                  if(turn==1 && farthest>10){
-                    winner=true;
-                    
-                  }
-                  else if(turn==2 && farthest<3){
-                    
-                    winner=true;
-                  }
-                  
-                  else{
-                    //System.out.println(placerow);
-                    if(turn==1){
-                      placerow=farthest+2;
-                    
-                      for(int x=placerow;x<14;x++){
-                        for(int y=0;y<14;y++){
-                          if(board[x][y]==2){
-                            promotes[1]+=1;
-                            board[x][y]=0;
-                          }
-                        }
-                      }
-                      if(promotes[0]>=3 ||promotes[1]>=3){
-                        winner = true;
-                      }
-                      else{
-                        for(int y=0;y<14;y++){
-                          if(board[placerow][y]==1){
-                            placepiece+=1;
-                          }
-                          board[placerow][y]=1;
-                        }
-                      }
-              
-                    }
-                    else if(turn==2){
-                      placerow=farthest-2;
-                      for(int x=placerow;x>=0;x--){
-                        for(int y=0;y<14;y++){
-                          if(board[x][y]==1){
-                            promotes[0]+=1;
-                            board[x][y]=0;
-                          }
-                        }
-                      }
-                      if(promotes[0]>=3 ||promotes[1]>=3){
-                        winner = true;
-                      }
-                      else{
-                        for(int y=0;y<14;y++){
-                          if(board[placerow][y]==2){
-                            placepiece+=1;
-                        
-                          }
-                          board[placerow][y]=2;
-                        }
-                      }
-                    }
-                    placing=true;
-            
-                  }
-                }
-              }
-            }
-          }
-          availablepoints.clear();
-          
-          
-          panel.repaint();
-          
+        	if((useTextInput/turn)%2==0) {
+	          if(placing==true){
+	            //System.out.println("aa");
+	            pointY=e.getX()/GRIDSIZE;
+	            pointX=e.getY()/GRIDSIZE;//inverted for some reason
+	            if (turn==2) {
+	            	pointX=13-pointX;
+	            	pointY=13-pointY;
+	            }
+	            
+	            if(pointX<14 && pointY<14 && board[pointX][pointY]==0){
+	              if(turn==1 && pointX==placerow+1){
+	                board[pointX][pointY]=1;
+	                placepiece-=1;
+	                if(filledRow(board,placerow+1)==true){
+	                    placepiece=0;
+	                  }
+	              }
+	              else if(turn==2 && pointX==placerow-1){
+	                board[pointX][pointY]=2;
+	                placepiece-=1;
+	                if(filledRow(board,placerow-1)==true){
+	                    placepiece=0;
+	                }
+	              }
+	            }
+	            if(placepiece==0){
+	              //System.out.println("aa");
+	              placing=false;
+	              //System.out.println(placing);
+	            }
+	            panel.repaint();
+	          }
+	          else if(placing==false){
+	              // temp placeholder variables until we make actual buttons
+	            
+	            //System.out.println("aa");
+	            if(pointY==e.getX()/GRIDSIZE && pointX==e.getY()/GRIDSIZE){
+	              selectspot=false;
+	            }
+	            pointY=e.getX()/GRIDSIZE;
+	            pointX=e.getY()/GRIDSIZE;//inverted for some reason
+	            //point on graph
+	            if (turn==2) {
+	            	pointX=13-pointX;
+	            	pointY=13-pointY;
+	            }
+	            
+	            if(selectspot==true){
+	              int[] arr={pointX,pointY};
+	              //System.out.print(arr[0]);
+	              //System.out.print(" ");
+	              //System.out.println(arr[1]);
+	              //System.out.println(elementIn(availablepoints,arr));
+	              if(elementIn(availablepoints,arr)==true){
+	                board[pointX][pointY]=board[selectX][selectY];
+	                board[selectX][selectY]=0;
+	              if(board[(selectX+pointX)/2][(selectY+pointY)/2]==3-board[pointX][pointY]){
+	                captures+=3-turn*2;
+	              }
+	              //making the move
+	              board[(selectX+pointX)/2][(selectY+pointY)/2]=0;
+	              //if you cannot move anymore:
+	              if(canMove(board,turn)==false){
+	            	//let the next person go 1->2, 2->1
+	                turn=3-turn;
+	                //move is just to make it so nothing silly happens turns 1 and 2
+	                move+=1;
+	                //System.out.println("a");
+	                
+	                //placing the back row and promotes
+	                if(move>2){
+	                  placepiece=3;
+	                  int farthest=findFarthest(board,turn);
+	                  
+	                  
+	                  if(turn==1 && farthest>10){
+	                    winner=true;
+	                    
+	                  }
+	                  else if(turn==2 && farthest<3){
+	                    
+	                    winner=true;
+	                  }
+	                  
+	                  else{
+	                    //System.out.println(placerow);
+	                    if(turn==1){
+	                      placerow=farthest+2;
+	                    
+	                      for(int x=placerow;x<14;x++){
+	                        for(int y=0;y<14;y++){
+	                          if(board[x][y]==2){
+	                            promotes[1]+=1;
+	                            board[x][y]=0;
+	                          }
+	                        }
+	                      }
+	                      if(promotes[0]>=3 ||promotes[1]>=3){
+	                        winner = true;
+	                      }
+	                      else{
+	                        for(int y=0;y<14;y++){
+	                          if(board[placerow][y]==1){
+	                            placepiece+=1;
+	                          }
+	                          board[placerow][y]=1;
+	                        }
+	                      }
+	              
+	                    }
+	                    else if(turn==2){
+	                      placerow=farthest-2;
+	                      for(int x=placerow;x>=0;x--){
+	                        for(int y=0;y<14;y++){
+	                          if(board[x][y]==1){
+	                            promotes[0]+=1;
+	                            board[x][y]=0;
+	                          }
+	                        }
+	                      }
+	                      if(promotes[0]>=3 ||promotes[1]>=3){
+	                        winner = true;
+	                      }
+	                      else{
+	                        for(int y=0;y<14;y++){
+	                          if(board[placerow][y]==2){
+	                            placepiece+=1;
+	                        
+	                          }
+	                          board[placerow][y]=2;
+	                        }
+	                      }
+	                    }
+	                    placing=true;
+	            
+	                  }
+	                }
+	              }
+	            }
+	          }
+	          availablepoints.clear();
+	          
+	          
+	          panel.repaint();
+	        }
           }
           
           
