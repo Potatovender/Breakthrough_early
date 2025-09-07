@@ -6,7 +6,7 @@ Run file GameRunner to play the game
 
 
 To play the game, just download the .jar file.
-
+You can download it by clicking "view raw" after clicking the .jar file
 
 The game is designed to be even harder than Chess; Your turn easily can consist of up to 20 moves, with millions, if not trillions, of possible outcomes.
 
